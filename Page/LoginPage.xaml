@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- 
+  LoginPage.xaml - User login interface with account management
+  Core functions: Account selection, password verification, registration navigation, and account deletion
+  Layout: Scrollable form on full-screen background for mobile-friendly interaction
+-->
+<!-- Hide system navigation bar to maintain consistent full-screen design -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FutureBound.Page.LoginPage"
+             BackgroundColor="White"
+             Padding="0"
+             NavigationPage.HasNavigationBar="False">
+
+    <!-- Main grid layout -->
+    <Grid>
+        <!-- Full-screen background image  -->
+        <Image 
+            Source="login_bg.jpg"  
+            Aspect="AspectFill"
+            VerticalOptions="Fill"
+            HorizontalOptions="Fill"/>
+
+        <!-- ScrollView ensures form accessibility on small-screen devices (prevents content cutoff) -->
+        <ScrollView>
+            <!-- Vertical stack layout  -->
+            <VerticalStackLayout Padding="20" Spacing="25">
+                <!-- Login page title  -->
+                <Label Text="Log in" 
+                       FontSize="24" 
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       Margin="0,20,0,10"/>
+
+                <!-- App logo  -->
+                <Image Source="logo.png" 
+                       WidthRequest="80" 
+                       HeightRequest="80"
+                       HorizontalOptions="Center"
+                       Margin="0,10,0,30"
+                       Aspect="AspectFit"/>
+
+                <!-- Account picker -->
+                <Picker x:Name="pickerAccount" 
+                        Title="Please register an account first"
+                        Margin="0,10,0,0"/>
+
+                <!-- Password input field  -->
+                <Entry x:Name="entryPassword" 
+                       Placeholder="Password:"
+                       IsPassword="True"
+                       Margin="0,10,0,0"/>
+
+                <!-- Login action button  -->
+                <Button x:Name="btnLogin"
+                        Text="Log in"
+                        BackgroundColor="#2E86AB"
+                        TextColor="White"
+                        Clicked="BtnLogin_Clicked"
+                        Margin="0,20,0,0"
+                        HorizontalOptions="Center"
+                        WidthRequest="280"/>
+
+                <!-- Registration navigation button -->
+                <Button x:Name="btnRegister"
+                        Text="Register"
+                        BackgroundColor="#FF3B30"
+                        TextColor="White"
+                        Clicked="BtnRegister_Clicked"
+                        Margin="0,10,0,0"
+                        HorizontalOptions="Center"
+                        WidthRequest="280"/>
+
+                <!-- Account deletion button  -->
+                <Button x:Name="btnDeleteAccount"
+                        Text="Delete current account"
+                        BackgroundColor="OrangeRed"
+                        TextColor="White"
+                        Clicked="BtnDeleteAccount_Clicked"
+                        Margin="0,10,0,0"
+                        HorizontalOptions="Center"
+                        WidthRequest="280"
+                        IsEnabled="False"/>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

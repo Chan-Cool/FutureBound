@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- 
+  SplashPage.xaml - App launch/splash screen
+  Core purpose: Display brand identity during app initialization
+  Design approach: Full-screen branded background with centered typography for visual impact
+-->
+<!-- Hide system nav bar to maintain full-screen splash design -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FutureBound.Page.SplashPage"
+             BackgroundColor="#F0F8FC"
+             Padding="0"
+             NavigationPage.HasNavigationBar="False">
+
+    <!-- Main grid  -->
+    <Grid VerticalOptions="Fill" HorizontalOptions="Fill">
+        <!-- Full-screen splash background image  -->
+        <Image 
+            Source="splash_bg.jpg" 
+            Aspect="AspectFill"  
+            VerticalOptions="Fill" 
+            HorizontalOptions="Fill"/>
+
+        <!-- Centered text container  -->
+        <VerticalStackLayout
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            HorizontalTextAlignment="Center"
+            Spacing="16">
+
+            <!-- App brand name  -->
+            <Label 
+                Text="FutureBound" 
+                FontSize="36" 
+                FontAttributes="Bold"
+                TextColor="#1A202C"
+                HorizontalTextAlignment="Center"/>
+
+            <!-- App tagline  -->
+            <Label 
+                Text="Save for Tomorrow, Bound for the Future" 
+                FontSize="18"
+                TextColor="#4A5568"
+                HorizontalTextAlignment="Center"/>
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>
