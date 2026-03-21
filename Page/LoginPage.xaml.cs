@@ -123,7 +123,7 @@ namespace FutureBound.Page
             if (inputPassword == savedPassword)
             {
                 await DisplayAlert("Success", "Login successful!", "OK");
-                await Navigation.PushAsync(new MainPage());
+                await Navigation.PushAsync(new FutureBound.Pages.HomePage()); 
             }
             else
             {
