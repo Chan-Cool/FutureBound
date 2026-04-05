@@ -3,11 +3,19 @@ using Microsoft.Maui.Storage;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FutureBound.Data;
 
 namespace FutureBound.Page
 {
-    // LoginPage 
-    // Manages local storage of registered accounts and passwords via MAUI Preferences
+    /// <summary>
+    /// LoginPage - User authentication and account management page
+    /// Core functions:
+    /// - Load/save registered accounts via MAUI Preferences
+    /// - Validate user credentials (username/password)
+    /// - Navigate to registration page
+    /// - Delete existing accounts with confirmation
+    /// - Manage UI state for buttons based on input validation
+    /// </summary>
     public partial class LoginPage : ContentPage
     {
         // Key for storing list of registered usernames in local preferences
@@ -15,8 +23,10 @@ namespace FutureBound.Page
         // Prefix for password storage (prevents key collision between different user accounts)
         private const string UserPasswordKeyPrefix = "UserPassword_";
 
-        // Initialize login page components and load saved accounts
-        // Sets up event listeners for account selection and password input changes
+        /// <summary>
+        /// Initialize login page components and load saved accounts
+        /// Sets up event listeners for account selection and password input changes
+        /// </summary>
         public LoginPage()
         {
             InitializeComponent();
@@ -37,8 +47,10 @@ namespace FutureBound.Page
             UpdateDeleteButtonState();
         }
 
-        // Refresh account list on UI thread (called from RegisterPage after new account creation)
-        // Automatically selects the newest registered account
+        /// <summary>
+        /// Refresh account list on UI thread (called from RegisterPage after new account creation)
+        /// Automatically selects the newest registered account
+        /// </summary>
         public void RefreshAccountList()
         {
             Dispatcher.Dispatch(() =>
@@ -55,8 +67,10 @@ namespace FutureBound.Page
             });
         }
 
-        //Load registered usernames from local preferences into account picker
-        //Clears existing items to avoid duplicates
+        /// <summary>
+        /// Load registered usernames from local preferences into account picker
+        /// Clears existing items to avoid duplicates
+        /// </summary>
         private void LoadRegisteredAccounts()
         {
             pickerAccount.Items.Clear();
@@ -75,8 +89,10 @@ namespace FutureBound.Page
             }
         }
 
-        // Update login button state (enabled/disabled) based on input validation
-        // Button is enabled only when account is selected and password is entered
+        /// <summary>
+        /// Update login button state (enabled/disabled) based on input validation
+        /// Button is enabled only when account is selected and password is entered
+        /// </summary>
         private void UpdateLoginButtonState()
         {
             bool isEnabled = !string.IsNullOrEmpty(pickerAccount.SelectedItem?.ToString())
@@ -86,8 +102,10 @@ namespace FutureBound.Page
             btnLogin.BackgroundColor = isEnabled ? Color.FromArgb("#2E86AB") : Colors.Gray;
         }
 
-        // Update delete button state (enabled/disabled)
-        // Button is enabled only when an account is selected
+        /// <summary>
+        /// Update delete button state (enabled/disabled)
+        /// Button is enabled only when an account is selected
+        /// </summary>
         private void UpdateDeleteButtonState()
         {
             bool isEnabled = !string.IsNullOrEmpty(pickerAccount.SelectedItem?.ToString());
@@ -96,57 +114,62 @@ namespace FutureBound.Page
             btnDeleteAccount.BackgroundColor = isEnabled ? Color.FromRgb(255, 69, 0) : Colors.Gray;
         }
 
-        // Handle login button click event
-        // Validates entered password against saved password for selected account
-        // Navigates to MainPage on successful validation
-        // <param name="sender">Button that triggered the event</param>
-        // <param name="e">Event arguments</param>
+        /// <summary>
+        /// Handle login button click event
+        /// Validates entered password against saved password for selected account
+        /// Navigates to MainPage on successful validation
+        /// </summary>
+        /// <param name="sender">Button that triggered the event</param>
+        /// <param name="e">Event arguments</param>
         private async void BtnLogin_Clicked(object sender, EventArgs e)
         {
             string selectedUsername = pickerAccount.SelectedItem?.ToString();
             string inputPassword = entryPassword.Text;
 
-            // Validate required fields
             if (string.IsNullOrEmpty(selectedUsername) || string.IsNullOrEmpty(inputPassword))
             {
                 await DisplayAlert("Notification", "Please select a username and enter password", "OK");
                 return;
             }
 
-            // Simulate API call delay for authentication
             await Task.Delay(1000);
 
-            // Retrieve saved password for selected account
             string savedPassword = Preferences.Get($"{UserPasswordKeyPrefix}{selectedUsername}", "");
 
-            // Password validation
             if (inputPassword == savedPassword)
             {
+                // ✅ Add this line! Set current username after successful login
+                AccountContext.CurrentUsername = selectedUsername;
+
                 await DisplayAlert("Success", "Login successful!", "OK");
-                await Navigation.PushAsync(new FutureBound.Pages.HomePage()); 
+                await Navigation.PushAsync(new FutureBound.Pages.HomePage());
             }
             else
             {
                 await DisplayAlert("Failed", "Incorrect password, please try again", "OK");
-                entryPassword.Text = ""; // Clear password input on failure
+                entryPassword.Text = "";
             }
         }
 
-        // Navigate to registration page and pass current LoginPage instance
-        // Allows RegisterPage to trigger account list refresh after new registration
-        // <param name="sender">Button that triggered the event</param>
-        // <param name="e">Event arguments</param>
+        /// <summary>
+        /// Navigate to registration page and pass current LoginPage instance
+        /// Allows RegisterPage to trigger account list refresh after new registration
+        /// </summary>
+        /// <param name="sender">Button that triggered the event</param>
+        /// <param name="e">Event arguments</param>
         private async void BtnRegister_Clicked(object sender, EventArgs e)
         {
             var registerPage = new RegisterPage(this);
             await Navigation.PushAsync(registerPage);
         }
 
-        // Handle account deletion button click event
-        // Removes selected account and associated password from local storage
-        // Includes confirmation dialog to prevent accidental deletion
-        // <param name="sender">Button that triggered the event</param>
-        // <param name="e">Event arguments</param>
+        /// <summary>
+        /// Handle account deletion button click event
+        /// Removes selected account and associated password from local storage
+        /// Includes confirmation dialog to prevent accidental deletion
+        /// </summary>
+        /// <param name="sender">Button that triggered the event</param>
+        /// <param name="e">Event arguments</param>
         private async void BtnDeleteAccount_Clicked(object sender, EventArgs e)
         {
             string selectedUsername = pickerAccount.SelectedItem?.ToString();
