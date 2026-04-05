@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- 
+  BillPage.xaml - Bill management main page
+  Core functions: Display filtered bill list, create new bills, navigate to bill details, bottom navigation
+  Layout: Top bar (filter + title + add button) + bill list + bottom navigation bar
+  Style: Dark theme with neon blue accents, rounded borders for modern card design
+-->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FutureBound.Page.BillPage"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="#0F0F23">
+
+    <!-- Main grid layout with 3 sections: top bar, bill list, bottom nav -->
+    <Grid RowDefinitions="Auto,*,Auto" RowSpacing="0" Padding="0">
+        <!-- Top bar: filter + title + add button -->
+        <Grid Grid.Row="0" BackgroundColor="#2A2A4A" Padding="18">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <!-- Left: Filter picker for bill types -->
+                <Border Grid.Column="0" 
+                        Stroke="#00FFFF" 
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 12"
+                        BackgroundColor="#1A1A3A"
+                        Padding="8"
+                        Margin="5"
+                        WidthRequest="80">
+                    <Picker x:Name="FilterPicker" 
+                            Title="All" 
+                            TitleColor="#00FFFF"
+                            TextColor="#00FFFF"
+                            FontSize="16"
+                            HorizontalOptions="Fill"/>
+                </Border>
+
+                <!-- Middle: Bill page title -->
+                <Label Text="Bill" Grid.Column="1"
+                       FontSize="34" 
+                       FontAttributes="Bold" 
+                       TextColor="#00FFFF" 
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"/>
+
+                <!-- Right: Add new bill button -->
+                <Border Grid.Column="2" 
+                        Stroke="#00FFFF" 
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 12"
+                        BackgroundColor="#1A1A3A"
+                        Padding="8"
+                        Margin="5"
+                        WidthRequest="80">
+                    <Button Text="＋" 
+                            FontSize="22" 
+                            BackgroundColor="Transparent" 
+                            TextColor="#00FFFF"
+                            HorizontalOptions="Center"
+                            Clicked="OnAddBillClicked"/>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- Bill list (CollectionView for scrollable bill cards) -->
+        <CollectionView Grid.Row="1" ItemsSource="{Binding FilteredBills}" Margin="20">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Stroke="#00FFFF" StrokeThickness="2" StrokeShape="RoundRectangle 15" BackgroundColor="#1A1A3A" Margin="0,10" Padding="20">
+                        <!-- Tap gesture for navigating to bill details -->
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnBillTapped" CommandParameter="{Binding}" />
+                        </Border.GestureRecognizers>
+
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="15">
+                            <!-- Bill type icon (fixed size, centered) -->
+                            <Label Grid.Column="0" 
+                                   Text="{Binding TypeLogo}" 
+                                   FontSize="30" 
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+
+                            <!-- Bill details (name + last modified time) -->
+                            <VerticalStackLayout Grid.Column="1">
+                                <Label Text="{Binding Name}" FontSize="24" FontAttributes="Bold" TextColor="White"/>
+                                <Label Text="{Binding LastModifiedTime}" FontSize="16" TextColor="LightGray"/>
+                            </VerticalStackLayout>
+
+                            <!-- Current bill balance (right aligned) -->
+                            <Label Grid.Column="2" Text="{Binding CurrentAmount, StringFormat='¥{0:N2}'}" FontSize="24" TextColor="#00FFFF" VerticalOptions="Center"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Bottom navigation bar -->
+        <Border Grid.Row="2" StrokeShape="RoundRectangle 30" BackgroundColor="#2A2A4A" Padding="10" Margin="10">
+            <Grid ColumnDefinitions="*,*,*">
+                <Button Text="Home" Grid.Column="0" FontSize="24" BackgroundColor="#3A3A5A" TextColor="#E0E0FF" Padding="20" CornerRadius="25" Clicked="OnHomeClicked"/>
+                <Button Text="Bill" Grid.Column="1" FontSize="24" BackgroundColor="#FFFF00" TextColor="Black" Padding="20" CornerRadius="25" IsEnabled="False"/>
+                <Button Text="More" Grid.Column="2" FontSize="24" BackgroundColor="#3A3A5A" TextColor="#E0E0FF" Padding="20" CornerRadius="25" Clicked="OnMoreClicked"/>
+            </Grid>
+        </Border>
+
+        <!-- Full-screen overlay (dim background for popup) -->
+        <Border x:Name="FullScreenOverlay"
+                IsVisible="False"
+                BackgroundColor="#000000"
+                Opacity="0.6"
+                Margin="0"
+                Padding="0"
+                HorizontalOptions="Fill"
+                VerticalOptions="Fill"/>
+
+        <!-- New bill popup (centered, styled border) -->
+        <Border x:Name="NewBillPopup"
+                IsVisible="False"
+                Stroke="#00FFFF"
+                StrokeThickness="3"
+                StrokeShape="RoundRectangle 25"
+                BackgroundColor="#1A1A3A"
+                Padding="30"
+                WidthRequest="360"
+                HeightRequest="400"
+                VerticalOptions="Center"
+                HorizontalOptions="Center">
+
+            <VerticalStackLayout Spacing="25">
+                <Label Text="Create Bill" FontSize="36" FontAttributes="Bold" TextColor="#00FFFF" HorizontalOptions="Center"/>
+                <!-- Bill name input -->
+                <Border Stroke="#00FFFF" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#2A2A4A" Padding="15">
+                    <Entry Text="{Binding NewBillName}" Placeholder="Bill Name" TextColor="White" PlaceholderColor="LightGray" FontSize="18"/>
+                </Border>
+                <!-- Bill type picker -->
+                <Border Stroke="#00FFFF" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#2A2A4A" Padding="12">
+                    <Picker x:Name="TypePicker" TextColor="White" Title="Choose Type" TitleColor="LightGray" FontSize="18">
+                        <Picker.Items>
+                            <x:String>Travel</x:String>
+                            <x:String>Traffic</x:String>
+                            <x:String>Life</x:String>
+                        </Picker.Items>
+                    </Picker>
+                </Border>
+                <!-- Popup action buttons (cancel + create) -->
+                <HorizontalStackLayout Spacing="30" HorizontalOptions="Center">
+                    <Button Text="Cancel" BackgroundColor="#3A3A5A" TextColor="White" CornerRadius="25" Padding="25,15" FontSize="18" Clicked="OnCancelNewBill"/>
+                    <Button Text="Create" BackgroundColor="#00FFFF" TextColor="Black" CornerRadius="25" Padding="25,15" FontSize="18" Clicked="OnSubmitNewBill"/>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+</ContentPage>

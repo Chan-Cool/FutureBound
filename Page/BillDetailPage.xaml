@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- 
+  BillDetailPage.xaml - Detailed view for individual bill management
+  Core functions: Display bill balance, add deposit/expense records, view transaction history
+  Layout: Navigation bar + balance display + action buttons + transaction list
+  Style: Consistent dark theme with neon blue accents, rounded borders for modern look
+-->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FutureBound.Page.BillDetailPage"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="#0F0F23">
+    <!-- Main grid layout with 4 sections -->
+    <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="0" Padding="0">
+        <!-- 1. Top navigation bar with back button and bill name -->
+        <Grid Grid.Row="0" BackgroundColor="#2A2A4A" Padding="20">
+            <Button Text="←" Clicked="OnBackClicked" BackgroundColor="Transparent" TextColor="#00FFFF" FontSize="24" HorizontalOptions="Start"/>
+            <Label Text="{Binding Name}" FontSize="32" FontAttributes="Bold" TextColor="#00FFFF" HorizontalOptions="Center"/>
+        </Grid>
+
+        <!-- 2. Current bill balance display with styled border -->
+        <Border Grid.Row="1" Margin="20" Stroke="#00FFFF" StrokeThickness="3" StrokeShape="RoundRectangle 25" BackgroundColor="#1A1A3A" Padding="40">
+            <Label Text="{Binding CurrentAmount, StringFormat='¥ {0:N2}'}" FontSize="56" FontAttributes="Bold" TextColor="#00FFFF" HorizontalOptions="Center"/>
+        </Border>
+
+        <!-- 3. Action buttons: Save (deposit) and Cost (expense) -->
+        <HorizontalStackLayout Grid.Row="2" Spacing="30" HorizontalOptions="Center" Margin="0,20">
+            <Button Text="Save" BackgroundColor="#00BFFF" TextColor="White" FontSize="32" Padding="35,25" CornerRadius="30" Clicked="OnSaveClicked"/>
+            <Button Text="Cost" BackgroundColor="#FF4500" TextColor="White" FontSize="32" Padding="35,25" CornerRadius="30" Clicked="OnCostClicked"/>
+        </HorizontalStackLayout>
+
+        <!-- 4. Bill transaction history list -->
+        <CollectionView Grid.Row="3" ItemsSource="{Binding Records}" Margin="20">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Stroke="#00FFFF" StrokeThickness="2" StrokeShape="RoundRectangle 15" BackgroundColor="#1A1A3A" Margin="0,10" Padding="20">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="15">
+                            <!-- Transaction type icon with colored background -->
+                            <Border Grid.Column="0" WidthRequest="60" HeightRequest="60" BackgroundColor="{Binding IsSave ? Colors.LightYellow : Colors.LightGreen}" Stroke="Transparent" StrokeShape="RoundRectangle 12">
+                                <Label Text="{Binding Bill.TypeLogo}" FontSize="Large" TextColor="Black" HorizontalOptions="Center"/>
+                            </Border>
+                            <!-- Transaction details (remark + time) -->
+                            <VerticalStackLayout Grid.Column="1">
+                                <Label Text="{Binding Remark}" FontSize="24" FontAttributes="Bold" TextColor="White"/>
+                                <Label Text="{Binding Time}" FontSize="16" TextColor="LightGray"/>
+                            </VerticalStackLayout>
+                            <!-- Transaction amount display -->
+                            <Label Grid.Column="2" Text="{Binding AmountDisplay}" FontSize="24" TextColor="#00FFFF" VerticalOptions="Center"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>
