@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
@@ -44,9 +44,9 @@ public partial class BillPage : ContentPage, INotifyPropertyChanged
         FilteredBills = new ObservableCollection<Bill>();
         BindingContext = this;
         FilterPicker.Items.Add("All");
-        FilterPicker.Items.Add("旅游");
-        FilterPicker.Items.Add("交通");
-        FilterPicker.Items.Add("生活");
+        FilterPicker.Items.Add("Travel");
+        FilterPicker.Items.Add("Traffic");
+        FilterPicker.Items.Add("Life");
         FilterPicker.SelectedIndex = 0;
         ApplyFilter(); // ✅ Added: Filter after loading
     }
