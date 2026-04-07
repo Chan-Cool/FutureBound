@@ -6,6 +6,7 @@ using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.Graphics;
 using System;
 using System.Threading.Tasks;
+
 // Added: Import vibration API namespace
 using Microsoft.Maui.Devices;
 
@@ -217,8 +218,10 @@ public partial class HomePage : ContentPage
                 };
                 TransactionManager.Instance.AddTransaction(transaction);
 
-                // ✅ Added: Vibrate on successful operation
+                //  Vibrate on successful operation
                 TryVibrate();
+                /// Notify user of successful transaction via in-app notification
+                NotificationHelper.SendImmediateNotification("Saved!", $"¥{amt:F2} added to your balance");
 
                 // Close popup
                 await Navigation.PopModalAsync();
@@ -367,9 +370,10 @@ public partial class HomePage : ContentPage
                 };
                 TransactionManager.Instance.AddTransaction(transaction);
 
-                // ✅ Added: Vibrate on successful operation
+                // Vibrate on successful operation
                 TryVibrate();
-
+                // Notify user of successful transaction via in-app notification
+                NotificationHelper.SendImmediateNotification("Cost!", $"¥{amt:F2} deducted from your balance");
                 // Close popup
                 await Navigation.PopModalAsync();
             }
@@ -401,7 +405,7 @@ public partial class HomePage : ContentPage
     /// <param name="message">Alert message</param>
     /// <param name="cancel">Cancel button text</param>
     /// <returns>Task for async operation</returns>
-    private Task DisplayAlertAsync(string title, string message, string cancel)
+    private new Task DisplayAlertAsync(string title, string message, string cancel)
     {
         return DisplayAlert(title, message, cancel);
     }
