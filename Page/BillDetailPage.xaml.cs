@@ -1,4 +1,4 @@
-﻿using Microsoft.Maui.Controls;
+using Microsoft.Maui.Controls;
 using FutureBound.Models;
 using FutureBound.Data;
 using Microsoft.Maui.Devices;
@@ -59,6 +59,8 @@ public partial class BillDetailPage : ContentPage
 
             //Vibration on successful operation (direct inline)
             TryVibrate();
+            //Send bill deposit notice
+            NotificationHelper.SendImmediateNotification("Bill Saved!", $"Added ¥{num:F2} to {Bill.Name}");
         }
     }
 
@@ -88,8 +90,10 @@ public partial class BillDetailPage : ContentPage
             var billPage = (BillPage)Navigation.NavigationStack[Navigation.NavigationStack.Count - 2];
             Data.AccountDataManager.SaveBills(billPage.Bills);
 
-            // ✅ Added: Vibration on successful operation (direct inline)
+            // Vibration on successful operation (direct inline)
             TryVibrate();
+            // Send bill expenditure notifications
+            NotificationHelper.SendImmediateNotification("Bill Cost!", $"Deducted ¥{num:F2} from {Bill.Name}");
         }
     }
 
