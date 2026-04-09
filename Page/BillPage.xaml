@@ -120,7 +120,7 @@
                 BackgroundColor="#1A1A3A"
                 Padding="30"
                 WidthRequest="360"
-                HeightRequest="400"
+                HeightRequest="480"
                 VerticalOptions="Center"
                 HorizontalOptions="Center">
 
@@ -139,6 +139,15 @@
                             <x:String>Life</x:String>
                         </Picker.Items>
                     </Picker>
+                </Border>
+                <!-- Event Date Selection -->
+                <Border Stroke="#00FFFF" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#2A2A4A" Padding="12">
+                    <DatePicker x:Name="EventDatePicker"
+                        TextColor="White"
+                        Format="yyyy-MM-dd"
+                        FontSize="18"
+                        MinimumDate="2000-01-01"
+                        MaximumDate="2100-12-31"/>
                 </Border>
                 <!-- Popup action buttons (cancel + create) -->
                 <HorizontalStackLayout Spacing="30" HorizontalOptions="Center">
