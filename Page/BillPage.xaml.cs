@@ -93,7 +93,7 @@ public partial class BillPage : ContentPage, INotifyPropertyChanged
         Color color = type == "旅游" ? Colors.LightGreen : type == "交通" ? Colors.LightCoral : Colors.LightSkyBlue;
         string logo = type == "旅游" ? "✈️" : type == "交通" ? "🚗" : "🛒";
 
-        Bills.Add(new Bill
+        Bills.Add(new Bill 
         {
             Name = NewBillName,
             Type = type,
