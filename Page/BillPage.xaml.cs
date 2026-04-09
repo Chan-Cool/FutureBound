@@ -39,7 +39,7 @@ public partial class BillPage : ContentPage, INotifyPropertyChanged
     public BillPage()
     {
         InitializeComponent();
-        // ✅ Load persisted bills (only add this line, style unchanged)
+        // Load persisted bills (only add this line, style unchanged)
         Bills = Data.AccountDataManager.LoadBills();
         FilteredBills = new ObservableCollection<Bill>();
         BindingContext = this;
@@ -48,7 +48,7 @@ public partial class BillPage : ContentPage, INotifyPropertyChanged
         FilterPicker.Items.Add("Traffic");
         FilterPicker.Items.Add("Life");
         FilterPicker.SelectedIndex = 0;
-        ApplyFilter(); // ✅ Added: Filter after loading
+        ApplyFilter(); //  Added: Filter after loading
     }
 
     /// <summary>
@@ -74,6 +74,7 @@ public partial class BillPage : ContentPage, INotifyPropertyChanged
         FullScreenOverlay.IsVisible = false;
         NewBillName = string.Empty;
         TypePicker.SelectedIndex = -1;
+        EventDatePicker.Date = DateTime.Today;
     }
 
     /// <summary>
@@ -90,27 +91,29 @@ public partial class BillPage : ContentPage, INotifyPropertyChanged
             return;
         }
         string type = TypePicker.SelectedItem.ToString();
-        Color color = type == "旅游" ? Colors.LightGreen : type == "交通" ? Colors.LightCoral : Colors.LightSkyBlue;
-        string logo = type == "旅游" ? "✈️" : type == "交通" ? "🚗" : "🛒";
+        Color color = type == "Travel" ? Colors.LightGreen : type == "Traffic" ? Colors.LightCoral : Colors.LightSkyBlue;
+        string logo = type == "Travel" ? "✈️" : type == "Traffic" ? "🚗" : "🛒";
 
         Bills.Add(new Bill 
         {
             Name = NewBillName,
             Type = type,
             LastModifiedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
-            // ✅ Only change here: Assign TypeColorHex instead of TypeColor
+            // Only change here: Assign TypeColorHex instead of TypeColor
             TypeColorHex = ToHex(color),
             TypeLogo = logo,
-            CurrentAmount = 0
+            CurrentAmount = 0,
+            EventDate = $"{EventDatePicker.Date:yyyy-MM-dd}"
         });
 
-        // ✅ Added: Save bills to local storage (style unchanged)
+        // Save bills to local storage (style unchanged)
         Data.AccountDataManager.SaveBills(Bills);
 
         NewBillPopup.IsVisible = false;
         FullScreenOverlay.IsVisible = false;
         NewBillName = string.Empty;
         TypePicker.SelectedIndex = -1;
+        EventDatePicker.Date = DateTime.Today;
         ApplyFilter();
     }
 

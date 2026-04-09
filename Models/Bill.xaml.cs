@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.Maui.Graphics;
@@ -7,50 +7,61 @@ using Newtonsoft.Json;
 namespace FutureBound.Models
 {
     /// <summary>
-    /// Represents the main bill entity that contains core bill information and related records
-    /// Implements INotifyPropertyChanged to support MVVM property change notification
+    /// Bill entity class that implements the INotifyPropertyChanged interface to support property change notifications
     /// </summary>
-    [JsonObject(MemberSerialization.OptIn)]  // ✅ Only serialize annotated fields
+    [JsonObject(MemberSerialization.OptIn)]
     public partial class Bill : INotifyPropertyChanged
     {
-        // Backing field for CurrentAmount property
+        /// <summary>
+        /// Private backing field for the CurrentAmount property
+        /// </summary>
         private decimal _currentAmount;
 
         /// <summary>
-        /// Name of the bill
+        /// Name of the bill (e.g., "Monthly Salary", "Grocery Expense")
         /// </summary>
-        [JsonProperty] public string Name { get; set; } = string.Empty;
+        [JsonProperty]
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// Type/category of the bill (e.g., Food, Transportation)
+        /// Type/category of the bill (e.g., "Food", "Transportation", "Income")
         /// </summary>
-        [JsonProperty] public string Type { get; set; } = string.Empty;
+        [JsonProperty]
+        public string Type { get; set; } = string.Empty;
 
         /// <summary>
-        /// Last modified timestamp of the bill
+        /// Last modified time of the bill (string format, e.g., "yyyy-MM-dd HH:mm:ss")
         /// </summary>
-        [JsonProperty] public string LastModifiedTime { get; set; } = string.Empty;
+        [JsonProperty]
+        public string LastModifiedTime { get; set; } = string.Empty;
 
         /// <summary>
-        /// Hex color code corresponding to the bill type (e.g., #FFFFFF)
+        /// Hex color code corresponding to the bill type (e.g., "#FF5733" for food)
         /// </summary>
-        [JsonProperty] public string TypeColorHex { get; set; } = "#FFFFFF";
+        [JsonProperty]
+        public string TypeColorHex { get; set; } = "#FFFFFF";
 
         /// <summary>
-        /// Converted Color object from TypeColorHex for MAUI UI rendering
-        /// Ignored in JSON serialization as it's UI-specific
+        /// Color object derived from TypeColorHex (ignored in JSON serialization)
         /// </summary>
         [JsonIgnore]
         public Color TypeColor => Color.FromArgb(TypeColorHex);
 
         /// <summary>
-        /// Logo identifier corresponding to the bill type
+        /// Logo identifier associated with the bill type (e.g., "icon_food", "icon_salary")
         /// </summary>
-        [JsonProperty] public string TypeLogo { get; set; } = string.Empty;
+        [JsonProperty]
+        public string TypeLogo { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Event date associated with the bill (string format, e.g., "yyyy-MM-dd")
+        /// </summary>
+        [JsonProperty]
+        public string EventDate { get; set; } = string.Empty;
 
         /// <summary>
         /// Current total amount of the bill
-        /// Triggers property change notification when value updates
+        /// Triggers PropertyChanged event when updated to refresh UI bindings
         /// </summary>
         [JsonProperty]
         public decimal CurrentAmount
@@ -65,19 +76,20 @@ namespace FutureBound.Models
 
         /// <summary>
         /// Collection of transaction records associated with the bill
-        /// Uses ObservableCollection to support UI auto-refresh on collection changes
+        /// ObservableCollection enables automatic UI updates when items are added/removed
         /// </summary>
-        [JsonProperty] public ObservableCollection<BillRecord> Records { get; set; } = new ObservableCollection<BillRecord>();
+        [JsonProperty]
+        public ObservableCollection<BillRecord> Records { get; set; } = new ObservableCollection<BillRecord>();
 
         /// <summary>
-        /// Event triggered when a property value changes
+        /// Overridden property change event to notify bound UI elements of updates
         /// </summary>
         public new event PropertyChangedEventHandler? PropertyChanged;
 
         /// <summary>
-        /// Raises the PropertyChanged event to notify UI of property updates
+        /// Triggers the PropertyChanged event for a specified property
         /// </summary>
-        /// <param name="name">Name of the changed property (auto-filled by CallerMemberName)</param>
+        /// <param name="name">Name of the property that changed (auto-populated by CallerMemberName)</param>
         protected void OnPropertyChanged([CallerMemberName] string name = null!)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
@@ -85,41 +97,57 @@ namespace FutureBound.Models
     }
 
     /// <summary>
-    /// Represents a single transaction record under a bill
+    /// Bill transaction record entity class
+    /// Represents a single income/expense entry for a bill
     /// </summary>
-    [JsonObject(MemberSerialization.OptIn)]  // ✅ Only serialize annotated fields for BillRecord
+    [JsonObject(MemberSerialization.OptIn)]
     public class BillRecord
     {
         /// <summary>
-        /// Monetary amount of the single transaction
+        /// Monetary amount of the transaction
         /// </summary>
-        [JsonProperty] public decimal Amount { get; set; } = 0;
+        [JsonProperty]
+        public decimal Amount { get; set; } = 0;
 
         /// <summary>
-        /// Remarks/description for the transaction (e.g., "Lunch")
+        /// Additional notes/remarks for the transaction
         /// </summary>
-        [JsonProperty] public string Remark { get; set; } = string.Empty;
+        [JsonProperty]
+        public string Remark { get; set; } = string.Empty;
 
         /// <summary>
-        /// Indicates if the amount is a deposit (true) or expenditure (false)
+        /// Transaction type flag: 
+        /// - True = Income (funds added to the bill)
+        /// - False = Expense (funds deducted from the bill)
         /// </summary>
-        [JsonProperty] public bool IsSave { get; set; } = false;
+        [JsonProperty]
+        public bool IsSave { get; set; } = false;
 
         /// <summary>
-        /// Timestamp when the transaction occurred
+        /// Timestamp of the transaction (string format, e.g., "yyyy-MM-dd HH:mm:ss")
         /// </summary>
-        [JsonProperty] public string Time { get; set; } = string.Empty;
+        [JsonProperty]
+        public string Time { get; set; } = string.Empty;
 
         /// <summary>
-        /// Reference to the parent Bill object
-        /// Ignored in JSON serialization to avoid circular references
+        /// Associated bill object (ignored in JSON serialization to avoid circular references)
         /// </summary>
         [JsonIgnore]
         public Bill Bill { get; set; } = null!;
 
         /// <summary>
-        /// Formatted display text for the amount (e.g., "+100" for deposit, "-50" for expenditure)
-        /// Calculated property for UI presentation
+        /// Display color for the transaction record:
+        /// - LightSkyBlue for income (IsSave = true)
+        /// - LightSalmon for expense (IsSave = false)
+        /// (Ignored in JSON serialization)
+        /// </summary>
+        [JsonIgnore]
+        public Color RecordColor => IsSave ? Colors.LightSkyBlue : Colors.LightSalmon;
+
+        /// <summary>
+        /// Formatted display string for the transaction amount:
+        /// - Prepends "+" for income (e.g., "+100.00")
+        /// - Prepends "-" for expense (e.g., "-50.00")
         /// </summary>
         public string AmountDisplay => IsSave ? $"+{Amount}" : $"-{Amount}";
     }
