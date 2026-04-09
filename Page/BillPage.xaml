@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!-- 
-  BillPage.xaml - Bill management main page
+  BillPage.xaml - Bill management main page 
   Core functions: Display filtered bill list, create new bills, navigate to bill details, bottom navigation
   Layout: Top bar (filter + title + add button) + bill list + bottom navigation bar
   Style: Dark theme with neon blue accents, rounded borders for modern card design
