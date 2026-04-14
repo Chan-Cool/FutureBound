@@ -6,32 +6,35 @@ using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.Graphics;
 using System;
 using System.Threading.Tasks;
-
-// Added: Import vibration API namespace
 using Microsoft.Maui.Devices;
 
 namespace FutureBound.Pages;
 
 /// <summary>
-/// HomePage - Main application homepage
-/// Core features:
-/// - Display total financial balance with animated updates
-/// - Add income (Save) and expense (Cost) transactions
-/// - Navigate to FlowRecordPage, BillPage, and MorePage
-/// - Provide haptic feedback on successful transactions
-/// - Persist total balance to local storage
+/// Main application homepage (HomePage)
+/// Core Responsibilities:
+/// - Display total financial balance with smooth animated updates
+/// - Handle income (Save) and expense (Cost) transactions
+/// - Navigate to secondary pages (FlowRecord, Bill, More)
+/// - Provide haptic feedback for successful transactions
+/// - Persist balance data to local storage
+/// - Send system notifications for transaction confirmations
 /// </summary>
 public partial class HomePage : ContentPage
 {
     /// <summary>
-    /// Current total financial balance
+    /// Current total financial balance (persisted to local storage)
     /// </summary>
     private decimal _totalAmount = 0;
 
     /// <summary>
-    /// Initialize HomePage and load saved total balance
-    /// Sets up transaction manager and initial UI state
+    /// Initializes HomePage components and loads saved balance
     /// </summary>
+    /// <remarks>
+    /// - Initializes TransactionManager for transaction tracking
+    /// - Loads previously saved balance using AccountDataManager
+    /// - Updates UI with saved balance value
+    /// </remarks>
     public HomePage()
     {
         InitializeComponent();
@@ -41,10 +44,16 @@ public partial class HomePage : ContentPage
     }
 
     /// <summary>
-    /// Update total balance display with smooth animation
-    /// Saves new balance to local storage and animates value transition
+    /// Updates balance display with smooth 500ms animation and persists new value
     /// </summary>
-    /// <param name="newAmount">New total balance to display</param>
+    /// <param name="newAmount">New total balance to display and save</param>
+    /// <remarks>
+    /// Animation details:
+    /// - 20 incremental steps (25ms per step)
+    /// - Transitions from old balance to new balance gradually
+    /// - Ensures final value is set explicitly to avoid animation rounding errors
+    /// - Safeguards against null reference on TotalAmountLabel
+    /// </remarks>
     private async void UpdateTotalAmountDisplay(decimal newAmount)
     {
         decimal oldAmount = _totalAmount;
@@ -60,47 +69,62 @@ public partial class HomePage : ContentPage
                 TotalAmountLabel.Text = $"¥ {current:F2}";
             await Task.Delay(25);
         }
-        // Ensure final value is set correctly
+        // Ensure final value is set correctly (prevents animation drift)
         if (TotalAmountLabel != null)
             TotalAmountLabel.Text = $"¥ {newAmount:F2}";
     }
 
     /// <summary>
-    /// Handle Flow Record button click - navigate to FlowRecordPage
+    /// Handles Flow Record button click - navigates to FlowRecordPage
     /// </summary>
-    /// <param name="sender">Button that triggered the event</param>
-    /// <param name="e">Event arguments</param>
+    /// <param name="sender">Flow Record button control</param>
+    /// <param name="e">Button click event arguments</param>
     private async void OnFlowRecordClicked(object sender, EventArgs e)
     {
         await Navigation.PushAsync(new FlowRecordPage());
     }
 
     /// <summary>
-    /// Handle Bill button click - navigate to BillPage
+    /// Handles Bill button click - navigates to BillPage
     /// </summary>
-    /// <param name="sender">Button that triggered the event</param>
-    /// <param name="e">Event arguments</param>
+    /// <param name="sender">Bill button control</param>
+    /// <param name="e">Button click event arguments</param>
     private async void OnBillClicked(object sender, EventArgs e)
     {
         await Navigation.PushAsync(new BillPage());
     }
 
     /// <summary>
-    /// Handle More button click - navigate to MorePage
+    /// Handles More button click - navigates to MorePage
     /// </summary>
-    /// <param name="sender">Button that triggered the event</param>
-    /// <param name="e">Event arguments</param>
+    /// <param name="sender">More button control</param>
+    /// <param name="e">Button click event arguments</param>
     private async void OnMoreClicked(object sender, EventArgs e)
     {
         await Navigation.PushAsync(new MorePage());
     }
 
     /// <summary>
-    /// Handle Save (income) button click - show popup for amount/remark input
-    /// Creates new income transaction and updates total balance
+    /// Handles Save (income) button click - shows custom popup for amount/remark input
+    /// Creates income transaction, updates balance, and sends confirmation notification
     /// </summary>
-    /// <param name="sender">Button that triggered the event</param>
-    /// <param name="e">Event arguments</param>
+    /// <param name="sender">Save button control</param>
+    /// <param name="e">Button click event arguments</param>
+    /// <remarks>
+    /// Validation Rules:
+    /// - Amount must be a valid decimal greater than 0
+    /// - Empty remark defaults to "No remark"
+    /// 
+    /// Post-validation Actions:
+    /// - Updates total balance with animation
+    /// - Adds transaction to TransactionManager
+    /// - Triggers haptic vibration feedback
+    /// - Sends success notification via NotificationHelper
+    /// - Closes input popup
+    /// 
+    /// Error Handling:
+    /// - Shows error alert for invalid/non-positive amounts
+    /// </remarks>
     private async void OnSaveClicked(object sender, EventArgs e)
     {
         var amountEntry = new Entry
@@ -136,7 +160,7 @@ public partial class HomePage : ContentPage
             Margin = new Thickness(0, 5)
         };
 
-        // Create save transaction popup UI
+        // Create save transaction popup UI with styled components
         var popup = new VerticalStackLayout
         {
             BackgroundColor = Color.FromArgb("#1A1A3A").WithAlpha(0.95f),
@@ -196,18 +220,18 @@ public partial class HomePage : ContentPage
             }
         };
 
-        // Get button row and attach click handlers
+        // Get button row and attach click handlers for Cancel/Submit
         var btnRow = (HorizontalStackLayout)popup.Children[3];
         ((Button)btnRow.Children[0]).Clicked += async (s, a) => await Navigation.PopModalAsync();
         ((Button)btnRow.Children[1]).Clicked += async (s, a) =>
         {
-            // Validate amount input
+            // Validate amount input (must be positive decimal)
             if (decimal.TryParse(amountEntry.Text, out var amt) && amt > 0)
             {
-                // Update total balance
+                // Update total balance with animation
                 UpdateTotalAmountDisplay(_totalAmount + amt);
 
-                // Create new income transaction
+                // Create new income transaction record
                 var transaction = new Transaction
                 {
                     Icon = "💾",
@@ -218,18 +242,27 @@ public partial class HomePage : ContentPage
                 };
                 TransactionManager.Instance.AddTransaction(transaction);
 
-                //  Vibrate on successful operation
+                // Trigger haptic feedback for successful transaction
                 TryVibrate();
-                /// Notify user of successful transaction via in-app notification
-                NotificationHelper.SendImmediateNotification("Saved!", $"¥{amt:F2} added to your balance");
 
-                // Close popup
+                // Send system notification for successful save operation
+                NotificationHelper.SendNotification(
+                    NotificationHelper.HomeSaveId,
+                    "Saved! 💾",
+                    $"¥{amt:F2} added to your balance",
+                    NotificationHelper.ReturnToHome);
+
+                // Close the input popup
                 await Navigation.PopModalAsync();
             }
-            else await DisplayAlertAsync("Error", "Please enter a valid amount", "OK");
+            else
+            {
+                // Show error alert for invalid amount input
+                await DisplayAlertAsync("Error", "Please enter a valid amount", "OK");
+            }
         };
 
-        // Display popup with dimmed background
+        // Display popup with dimmed background overlay
         await Navigation.PushModalAsync(new ContentPage
         {
             BackgroundColor = Color.FromRgba(0, 0, 0, 0.8),
@@ -248,11 +281,27 @@ public partial class HomePage : ContentPage
     }
 
     /// <summary>
-    /// Handle Cost (expense) button click - show popup for amount/remark input
-    /// Creates new expense transaction and updates total balance (if sufficient funds)
+    /// Handles Cost (expense) button click - shows custom popup for amount/remark input
+    /// Creates expense transaction, updates balance (if sufficient funds), sends confirmation notification
     /// </summary>
-    /// <param name="sender">Button that triggered the event</param>
-    /// <param name="e">Event arguments</param>
+    /// <param name="sender">Cost button control</param>
+    /// <param name="e">Button click event arguments</param>
+    /// <remarks>
+    /// Validation Rules:
+    /// - Amount must be valid decimal > 0
+    /// - Current balance must be ≥ expense amount
+    /// - Empty remark defaults to "No remark"
+    /// 
+    /// Post-validation Actions:
+    /// - Deducts amount from total balance (with animation)
+    /// - Adds expense transaction to TransactionManager
+    /// - Triggers haptic vibration feedback
+    /// - Sends success notification via NotificationHelper
+    /// - Closes input popup
+    /// 
+    /// Error Handling:
+    /// - Shows error alert for invalid amount or insufficient balance
+    /// </remarks>
     private async void OnCostClicked(object sender, EventArgs e)
     {
         var amountEntry = new Entry
@@ -288,7 +337,7 @@ public partial class HomePage : ContentPage
             Margin = new Thickness(0, 5)
         };
 
-        // Create cost transaction popup UI
+        // Create cost transaction popup UI with styled components
         var popup = new VerticalStackLayout
         {
             BackgroundColor = Color.FromArgb("#1A1A3A").WithAlpha(0.95f),
@@ -348,7 +397,7 @@ public partial class HomePage : ContentPage
             }
         };
 
-        // Get button row and attach click handlers
+        // Get button row and attach click handlers for Cancel/Submit
         var btnRow = (HorizontalStackLayout)popup.Children[3];
         ((Button)btnRow.Children[0]).Clicked += async (s, a) => await Navigation.PopModalAsync();
         ((Button)btnRow.Children[1]).Clicked += async (s, a) =>
@@ -356,10 +405,10 @@ public partial class HomePage : ContentPage
             // Validate amount input and sufficient balance
             if (decimal.TryParse(amountEntry.Text, out var amt) && amt > 0 && _totalAmount >= amt)
             {
-                // Update total balance
+                // Update total balance with animation (deduct expense)
                 UpdateTotalAmountDisplay(_totalAmount - amt);
 
-                // Create new expense transaction
+                // Create new expense transaction record
                 var transaction = new Transaction
                 {
                     Icon = "💸",
@@ -370,17 +419,27 @@ public partial class HomePage : ContentPage
                 };
                 TransactionManager.Instance.AddTransaction(transaction);
 
-                // Vibrate on successful operation
+                // Trigger haptic feedback for successful transaction
                 TryVibrate();
-                // Notify user of successful transaction via in-app notification
-                NotificationHelper.SendImmediateNotification("Cost!", $"¥{amt:F2} deducted from your balance");
-                // Close popup
+
+                // Send system notification for successful cost operation
+                NotificationHelper.SendNotification(
+                    NotificationHelper.HomeCostId,
+                    "Cost! 💸",
+                    $"¥{amt:F2} deducted from your balance",
+                    NotificationHelper.ReturnToHome);
+
+                // Close the input popup
                 await Navigation.PopModalAsync();
             }
-            else await DisplayAlertAsync("Error", "Invalid amount or insufficient balance", "OK");
+            else
+            {
+                // Show error alert for invalid amount or insufficient balance
+                await DisplayAlertAsync("Error", "Invalid amount or insufficient balance", "OK");
+            }
         };
 
-        // Display popup with dimmed background
+        // Display popup with dimmed background overlay
         await Navigation.PushModalAsync(new ContentPage
         {
             BackgroundColor = Color.FromRgba(0, 0, 0, 0.8),
@@ -399,22 +458,27 @@ public partial class HomePage : ContentPage
     }
 
     /// <summary>
-    /// Wrapper method for DisplayAlert to return Task (consistent async pattern)
+    /// Wrapper method for DisplayAlert to maintain consistent async pattern
+    /// Overrides base method to return Task instead of void
     /// </summary>
-    /// <param name="title">Alert title</param>
-    /// <param name="message">Alert message</param>
-    /// <param name="cancel">Cancel button text</param>
-    /// <returns>Task for async operation</returns>
+    /// <param name="title">Alert dialog title</param>
+    /// <param name="message">Alert dialog content message</param>
+    /// <param name="cancel">Text for cancel/OK button</param>
+    /// <returns>Task representing the async alert operation</returns>
     private new Task DisplayAlertAsync(string title, string message, string cancel)
     {
         return DisplayAlert(title, message, cancel);
     }
 
     /// <summary>
-    /// Local vibration method for haptic feedback
-    /// Triggers short vibration (100ms) if supported by the device
-    /// Catches exceptions to prevent app crashes
+    /// Triggers short haptic vibration feedback (100ms) if supported by device
     /// </summary>
+    /// <remarks>
+    /// Error Handling:
+    /// - Catches all exceptions to prevent app crashes
+    /// - Silently fails if vibration is unsupported or unavailable
+    /// - Does not affect main application flow
+    /// </remarks>
     private void TryVibrate()
     {
         try
@@ -426,7 +490,7 @@ public partial class HomePage : ContentPage
         }
         catch (Exception)
         {
-            // Ignore vibration exceptions to not affect main flow
+            // Ignore vibration exceptions to not impact core functionality
         }
     }
 }

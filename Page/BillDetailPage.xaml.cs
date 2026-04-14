@@ -68,8 +68,12 @@ public partial class BillDetailPage : ContentPage
         // Provide haptic feedback
         TryVibrate();
 
-        // Show success notification to the user
-        NotificationHelper.SendImmediateNotification("Increased!", $"Added ¥{num:F2} to {Bill.Name}");
+        // Send system notification for successful increase
+        NotificationHelper.SendNotification(
+            NotificationHelper.BillSaveId,
+            "Bill Increased! 💰",
+            $"Added ¥{num:F2} to {Bill.Name}",
+            NotificationHelper.ReturnToBill);
     }
 
     /// <summary>
@@ -120,8 +124,12 @@ public partial class BillDetailPage : ContentPage
         // Provide haptic feedback
         TryVibrate();
 
-        // Show success notification to the user
-        NotificationHelper.SendImmediateNotification("Decreased!", $"Deducted ¥{num:F2} from {Bill.Name}");
+        // Send system notification for successful decrease
+        NotificationHelper.SendNotification(
+            NotificationHelper.BillCostId,
+            "Bill Decreased! 💸",
+            $"Deducted ¥{num:F2} from {Bill.Name}",
+            NotificationHelper.ReturnToBill);
     }
 
     /// <summary>
