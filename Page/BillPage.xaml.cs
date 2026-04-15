@@ -94,7 +94,7 @@ public partial class BillPage : ContentPage, INotifyPropertyChanged
         Color color = type == "Travel" ? Colors.LightGreen : type == "Traffic" ? Colors.LightCoral : Colors.LightSkyBlue;
         string logo = type == "Travel" ? "✈️" : type == "Traffic" ? "🚗" : "🛒";
 
-        Bills.Add(new Bill 
+        Bills.Add(new Bill
         {
             Name = NewBillName,
             Type = type,
@@ -146,6 +146,26 @@ public partial class BillPage : ContentPage, INotifyPropertyChanged
         foreach (var b in Bills)
             if (f == "All" || b.Type == f)
                 FilteredBills.Add(b);
+    }
+
+    /// <summary>
+    /// Handle swipe-to-delete - shows confirmation dialog before removing the bill
+    /// </summary>
+    private async void OnDeleteBillInvoked(object sender, EventArgs e)
+    {
+        if (sender is SwipeItem item && item.CommandParameter is Bill bill)
+        {
+            bool confirm = await DisplayAlert(
+                "Delete Bill",
+                $"Are you sure you want to delete \"{bill.Name}\"?\nThis action cannot be undone.",
+                "Delete", "Cancel");
+
+            if (!confirm) return;
+
+            Bills.Remove(bill);
+            Data.AccountDataManager.SaveBills(Bills);
+            ApplyFilter();
+        }
     }
 
     /// <summary>
