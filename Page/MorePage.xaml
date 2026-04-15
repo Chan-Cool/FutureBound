@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- 
+  MorePage.xaml - UI Layout for FutureBound's Settings/More Page
+  Core UI Components:
+  - Top navigation bar (page title)
+  - Scrollable main content (account/profile, settings, data management, account ops)
+  - Fixed bottom navigation (Home/Bill/More)
+  - Modular popups (avatar selection, settings, data management, account switching)
+  - Full-screen overlay for popup background dimming/ dismissal
+  Design System:
+  - Primary color: Cyan (#00FFFF) for interactive elements/highlights
+  - Secondary color: Dark red (#FF4500) for critical actions (logout/clear data)
+  - Background colors: Dark purple gradient (#0F0F23 → #1A1A3A → #2A2A4A)
+  - Rounded corners (15-25dp) for all containers (modern mobile design)
+-->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FutureBound.Page.MorePage"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="#0F0F23">
+
+    <!-- 
+      Main Grid Layout (3 rows):
+      Row 0: Fixed top bar (page title)
+      Row 1: Scrollable main content (all functional cards)
+      Row 2: Fixed bottom navigation bar
+    -->
+    <Grid RowDefinitions="Auto,*,Auto" RowSpacing="0" Padding="0">
+
+        <!-- Top Bar - Fixed header with page title -->
+        <Grid Grid.Row="0" BackgroundColor="#2A2A4A" Padding="18">
+            <Label Text="More"
+                   FontSize="34"
+                   FontAttributes="Bold"
+                   TextColor="#00FFFF"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"/>
+        </Grid>
+
+        <!-- Main Scrollable Content - All functional cards -->
+        <ScrollView Grid.Row="1" Margin="20,15,20,10">
+            <VerticalStackLayout Spacing="14">
+
+                <!-- Account Information Card - Profile header with avatar/username -->
+                <Border Stroke="#00FFFF"
+                        StrokeThickness="2"
+                        StrokeShape="RoundRectangle 18"
+                        BackgroundColor="#1A1A3A"
+                        Padding="20">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+                        <!-- Avatar Container (Tappable for avatar selection) -->
+                        <Border Grid.Column="0"
+                                StrokeShape="Ellipse"
+                                WidthRequest="72"
+                                HeightRequest="72"
+                                Stroke="#00FFFF"
+                                StrokeThickness="2"
+                                BackgroundColor="#2A2A4A">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnAvatarTapped"/>
+                            </Border.GestureRecognizers>
+                            <Image x:Name="AvatarImage"
+                                   Source="avatar_dog.svg"
+                                   Aspect="AspectFill"/>
+                        </Border>
+                        <!-- Username Display & Hint Text -->
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                            <Label x:Name="UsernameLabel"
+                                   Text="Username"
+                                   FontSize="22"
+                                   FontAttributes="Bold"
+                                   TextColor="White"/>
+                            <Label Text="Tap avatar to change"
+                                   FontSize="13"
+                                   TextColor="#00FFFF"
+                                   Opacity="0.7"/>
+                        </VerticalStackLayout>
+                        <!-- Chevron Icon (Visual indicator for tappable area) -->
+                        <Label Grid.Column="2"
+                               Text="›"
+                               FontSize="28"
+                               TextColor="#00FFFF"
+                               VerticalOptions="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- Software Settings Card - Decimal precision & date format configuration -->
+                <Border Stroke="#00FFFF"
+                        StrokeThickness="2"
+                        StrokeShape="RoundRectangle 15"
+                        BackgroundColor="#1A1A3A"
+                        Padding="20">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnSettingsClicked"/>
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                        <Label Grid.Column="0" Text="⚙️" FontSize="26" VerticalOptions="Center"/>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                            <Label Text="Software Settings"
+                                   FontSize="20"
+                                   FontAttributes="Bold"
+                                   TextColor="White"/>
+                            <Label Text="Amount precision, date format"
+                                   FontSize="13"
+                                   TextColor="LightGray"/>
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2" Text="›" FontSize="28" TextColor="#00FFFF" VerticalOptions="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- Data Management Card - Export/clear local financial data -->
+                <Border Stroke="#00FFFF"
+                        StrokeThickness="2"
+                        StrokeShape="RoundRectangle 15"
+                        BackgroundColor="#1A1A3A"
+                        Padding="20">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnDataManagementClicked"/>
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                        <Label Grid.Column="0" Text="💾" FontSize="26" VerticalOptions="Center"/>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                            <Label Text="Data Management"
+                                   FontSize="20"
+                                   FontAttributes="Bold"
+                                   TextColor="White"/>
+                            <Label Text="Backup, restore, clear cache"
+                                   FontSize="13"
+                                   TextColor="LightGray"/>
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2" Text="›" FontSize="28" TextColor="#00FFFF" VerticalOptions="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- About Software Card - Version/usage/storage information -->
+                <Border Stroke="#00FFFF"
+                        StrokeThickness="2"
+                        StrokeShape="RoundRectangle 15"
+                        BackgroundColor="#1A1A3A"
+                        Padding="20">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnAboutClicked"/>
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                        <Label Grid.Column="0" Text="ℹ️" FontSize="26" VerticalOptions="Center"/>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                            <Label Text="About the Software"
+                                   FontSize="20"
+                                   FontAttributes="Bold"
+                                   TextColor="White"/>
+                            <Label Text="Version info and usage guide"
+                                   FontSize="13"
+                                   TextColor="LightGray"/>
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2" Text="›" FontSize="28" TextColor="#00FFFF" VerticalOptions="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- Account Switching Card - Switch between registered local accounts -->
+                <Border Stroke="#00FFFF"
+                        StrokeThickness="2"
+                        StrokeShape="RoundRectangle 15"
+                        BackgroundColor="#1A1A3A"
+                        Padding="20">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnAccountSwitchClicked"/>
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                        <Label Grid.Column="0" Text="👤" FontSize="26" VerticalOptions="Center"/>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                            <Label Text="Account Switching"
+                                   FontSize="20"
+                                   FontAttributes="Bold"
+                                   TextColor="White"/>
+                            <Label Text="Switch between local accounts"
+                                   FontSize="13"
+                                   TextColor="LightGray"/>
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2" Text="›" FontSize="28" TextColor="#00FFFF" VerticalOptions="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- Log Out Card - Secure logout (preserves local data) -->
+                <Border Stroke="#FF4500"
+                        StrokeThickness="2"
+                        StrokeShape="RoundRectangle 15"
+                        BackgroundColor="#1A1A3A"
+                        Padding="20">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnLogoutClicked"/>
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                        <Label Grid.Column="0" Text="🚪" FontSize="26" VerticalOptions="Center"/>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                            <Label Text="Log Out"
+                                   FontSize="20"
+                                   FontAttributes="Bold"
+                                   TextColor="#FF6347"/>
+                            <Label Text="Return to account selection"
+                                   FontSize="13"
+                                   TextColor="LightGray"/>
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2" Text="›" FontSize="28" TextColor="#FF4500" VerticalOptions="Center"/>
+                    </Grid>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Bottom Navigation Bar - Fixed navigation to Home/Bill/More pages -->
+        <Border Grid.Row="2" StrokeShape="RoundRectangle 30" BackgroundColor="#2A2A4A" Padding="10" Margin="10">
+            <Grid ColumnDefinitions="*,*,*">
+                <!-- Home Button - Navigates to income/expense tracking page -->
+                <Button Text="Home" Grid.Column="0" FontSize="24" FontAttributes="Bold"
+                        BackgroundColor="#3A3A5A" TextColor="#E0E0FF" Padding="20" CornerRadius="25"
+                        Clicked="OnHomeClicked"/>
+                <!-- Bill Button - Navigates to bill category management page -->
+                <Button Text="Bill" Grid.Column="1" FontSize="24" FontAttributes="Bold"
+                        BackgroundColor="#3A3A5A" TextColor="#E0E0FF" Padding="20" CornerRadius="25"
+                        Clicked="OnBillClicked"/>
+                <!-- More Button - Disabled (current page indicator) -->
+                <Button Text="More" Grid.Column="2" FontSize="24" FontAttributes="Bold"
+                        BackgroundColor="#FFFF00" TextColor="Black" Padding="20" CornerRadius="25"
+                        IsEnabled="False"/>
+            </Grid>
+        </Border>
+
+        <!-- Full-Screen Overlay - Dims background and enables popup dismissal -->
+        <Border x:Name="FullScreenOverlay"
+                IsVisible="False"
+                BackgroundColor="#000000"
+                Opacity="0.65"
+                HorizontalOptions="Fill"
+                VerticalOptions="Fill">
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnOverlayTapped"/>
+            </Border.GestureRecognizers>
+        </Border>
+
+        <!-- Avatar Selection Popup - Modular UI for choosing profile avatar -->
+        <Border x:Name="AvatarPopup"
+                IsVisible="False"
+                Stroke="#00FFFF"
+                StrokeThickness="3"
+                StrokeShape="RoundRectangle 25"
+                BackgroundColor="#1A1A3A"
+                Padding="28"
+                WidthRequest="340"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+            <VerticalStackLayout Spacing="20">
+                <!-- Popup Title -->
+                <Label Text="Choose Avatar"
+                       FontSize="28"
+                       FontAttributes="Bold"
+                       TextColor="#00FFFF"
+                       HorizontalOptions="Center"/>
+                <!-- Avatar Options (Dog/Rabbit/Cat) -->
+                <HorizontalStackLayout Spacing="20" HorizontalOptions="Center">
+                    <!-- Dog Avatar Option -->
+                    <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                        <Border x:Name="DogBorder"
+                                StrokeShape="Ellipse"
+                                WidthRequest="76"
+                                HeightRequest="76"
+                                Stroke="#3A3A5A"
+                                StrokeThickness="3"
+                                BackgroundColor="#2A2A4A">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnSelectDog"/>
+                            </Border.GestureRecognizers>
+                            <Image Source="avatar_dog.svg" Aspect="AspectFill"/>
+                        </Border>
+                        <Label Text="🐶 Dog"
+                               FontSize="14"
+                               TextColor="LightGray"
+                               HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                    <!-- Rabbit Avatar Option -->
+                    <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                        <Border x:Name="RabbitBorder"
+                                StrokeShape="Ellipse"
+                                WidthRequest="76"
+                                HeightRequest="76"
+                                Stroke="#3A3A5A"
+                                StrokeThickness="3"
+                                BackgroundColor="#2A2A4A">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnSelectRabbit"/>
+                            </Border.GestureRecognizers>
+                            <Image Source="avatar_rabbit.svg" Aspect="AspectFill"/>
+                        </Border>
+                        <Label Text="🐰 Rabbit"
+                               FontSize="14"
+                               TextColor="LightGray"
+                               HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                    <!-- Cat Avatar Option -->
+                    <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                        <Border x:Name="CatBorder"
+                                StrokeShape="Ellipse"
+                                WidthRequest="76"
+                                HeightRequest="76"
+                                Stroke="#3A3A5A"
+                                StrokeThickness="3"
+                                BackgroundColor="#2A2A4A">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnSelectCat"/>
+                            </Border.GestureRecognizers>
+                            <Image Source="avatar_cat.svg" Aspect="AspectFill"/>
+                        </Border>
+                        <Label Text="🐱 Cat"
+                               FontSize="14"
+                               TextColor="LightGray"
+                               HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+                <!-- Cancel Button - Closes popup without changes -->
+                <Button Text="Cancel"
+                        BackgroundColor="#3A3A5A"
+                        TextColor="White"
+                        CornerRadius="20"
+                        FontSize="18"
+                        Padding="20,12"
+                        HorizontalOptions="Center"
+                        Clicked="OnClosePopup"/>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Software Settings Popup - Decimal precision & date format configuration -->
+        <Border x:Name="SettingsPopup"
+                IsVisible="False"
+                Stroke="#00FFFF"
+                StrokeThickness="3"
+                StrokeShape="RoundRectangle 25"
+                BackgroundColor="#1A1A3A"
+                Padding="28"
+                WidthRequest="340"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+            <VerticalStackLayout Spacing="20">
+                <!-- Popup Title -->
+                <Label Text="⚙️ Software Settings"
+                       FontSize="26"
+                       FontAttributes="Bold"
+                       TextColor="#00FFFF"
+                       HorizontalOptions="Center"/>
+                <!-- Decimal Places Picker - Controls monetary value precision -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Amount Decimal Places"
+                           FontSize="17"
+                           TextColor="LightGray"/>
+                    <Border Stroke="#00FFFF" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#2A2A4A" Padding="10">
+                        <Picker x:Name="DecimalPicker"
+                                TextColor="White"
+                                TitleColor="LightGray"
+                                Title="Select precision"
+                                FontSize="17">
+                            <Picker.Items>
+                                <x:String>0 — ¥100</x:String>
+                                <x:String>1 — ¥100.0</x:String>
+                                <x:String>2 — ¥100.00</x:String>
+                            </Picker.Items>
+                        </Picker>
+                    </Border>
+                </VerticalStackLayout>
+                <!-- Date Format Picker - Controls date display format -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Date Display Format"
+                           FontSize="17"
+                           TextColor="LightGray"/>
+                    <Border Stroke="#00FFFF" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#2A2A4A" Padding="10">
+                        <Picker x:Name="DateFormatPicker"
+                                TextColor="White"
+                                TitleColor="LightGray"
+                                Title="Select format"
+                                FontSize="17">
+                            <Picker.Items>
+                                <x:String>yyyy-MM-dd</x:String>
+                                <x:String>MM/dd/yyyy</x:String>
+                                <x:String>dd/MM/yyyy</x:String>
+                            </Picker.Items>
+                        </Picker>
+                    </Border>
+                </VerticalStackLayout>
+                <!-- Action Buttons (Cancel/Save) -->
+                <HorizontalStackLayout Spacing="20" HorizontalOptions="Center">
+                    <Button Text="Cancel" BackgroundColor="#3A3A5A" TextColor="White"
+                            CornerRadius="20" FontSize="17" Padding="22,12" Clicked="OnClosePopup"/>
+                    <Button Text="Save" BackgroundColor="#00BFFF" TextColor="White"
+                            CornerRadius="20" FontSize="17" Padding="22,12" Clicked="OnSaveSettings"/>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Data Management Popup - Export/clear local financial data -->
+        <Border x:Name="DataPopup"
+                IsVisible="False"
+                Stroke="#00FFFF"
+                StrokeThickness="3"
+                StrokeShape="RoundRectangle 25"
+                BackgroundColor="#1A1A3A"
+                Padding="28"
+                WidthRequest="340"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+            <VerticalStackLayout Spacing="16">
+                <!-- Popup Title -->
+                <Label Text="💾 Data Management"
+                       FontSize="26"
+                       FontAttributes="Bold"
+                       TextColor="#00FFFF"
+                       HorizontalOptions="Center"/>
+                <!-- Export Data Option - Copies all data to clipboard -->
+                <Border Stroke="#00FFFF" StrokeThickness="1" StrokeShape="RoundRectangle 12"
+                        BackgroundColor="#2A2A4A" Padding="16">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnExportData"/>
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Label Grid.Column="0" Text="📤" FontSize="24" VerticalOptions="Center" Margin="0,0,12,0"/>
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="Export Data" FontSize="18" FontAttributes="Bold" TextColor="White"/>
+                            <Label Text="Copy all data to clipboard" FontSize="13" TextColor="LightGray"/>
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+                <!-- Clear Data Option - Permanently deletes local data (critical action) -->
+                <Border Stroke="#FF4500" StrokeThickness="1" StrokeShape="RoundRectangle 12"
+                        BackgroundColor="#2A2A4A" Padding="16">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnClearCache"/>
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Label Grid.Column="0" Text="🗑️" FontSize="24" VerticalOptions="Center" Margin="0,0,12,0"/>
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="Clear All My Data" FontSize="18" FontAttributes="Bold" TextColor="#FF6347"/>
+                            <Label Text="Delete all local records" FontSize="13" TextColor="LightGray"/>
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+                <!-- Close Button - Closes popup without action -->
+                <Button Text="Close" BackgroundColor="#3A3A5A" TextColor="White"
+                        CornerRadius="20" FontSize="18" Padding="20,12"
+                        HorizontalOptions="Center" Clicked="OnClosePopup"/>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Account Switching Popup - Select and switch to registered local accounts -->
+        <Border x:Name="AccountSwitchPopup"
+                IsVisible="False"
+                Stroke="#00FFFF"
+                StrokeThickness="3"
+                StrokeShape="RoundRectangle 25"
+                BackgroundColor="#1A1A3A"
+                Padding="28"
+                WidthRequest="340"
+                HeightRequest="420"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+            <VerticalStackLayout Spacing="16">
+                <!-- Popup Title -->
+                <Label Text="👤 Switch Account"
+                       FontSize="26"
+                       FontAttributes="Bold"
+                       TextColor="#00FFFF"
+                       HorizontalOptions="Center"/>
+                <!-- Instruction Text -->
+                <Label Text="Select an account to switch to:"
+                       FontSize="15"
+                       TextColor="LightGray"
+                       HorizontalOptions="Center"/>
+                <!-- Account List View - Displays non-active registered accounts -->
+                <CollectionView x:Name="AccountListView"
+                                SelectionMode="Single"
+                                SelectionChanged="OnAccountSelected"
+                                HeightRequest="220">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Stroke="#00FFFF" StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="#2A2A4A"
+                                    Padding="16" Margin="0,5">
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <Label Grid.Column="0" Text="👤" FontSize="20"
+                                           VerticalOptions="Center" Margin="0,0,10,0"/>
+                                    <Label Grid.Column="1" Text="{Binding}"
+                                           FontSize="18" TextColor="White"
+                                           VerticalOptions="Center"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+                <!-- Cancel Button - Closes popup without switching -->
+                <Button Text="Cancel" BackgroundColor="#3A3A5A" TextColor="White"
+                        CornerRadius="20" FontSize="18" Padding="20,12"
+                        HorizontalOptions="Center" Clicked="OnClosePopup"/>
+            </VerticalStackLayout>
+        </Border>
+
+    </Grid>
+</ContentPage>
