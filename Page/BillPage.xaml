@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!-- 
-  BillPage.xaml - Bill management main page 
+  BillPage.xaml - Bill management main page
   Core functions: Display filtered bill list, create new bills, navigate to bill details, bottom navigation
   Layout: Top bar (filter + title + add button) + bill list + bottom navigation bar
   Style: Dark theme with neon blue accents, rounded borders for modern card design
@@ -64,7 +64,17 @@
         <CollectionView Grid.Row="1" ItemsSource="{Binding FilteredBills}" Margin="20">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Border Stroke="#00FFFF" StrokeThickness="2" StrokeShape="RoundRectangle 15" BackgroundColor="#1A1A3A" Margin="0,10" Padding="20">
+                    <!-- SwipeView enables left-swipe to reveal delete button -->
+                    <SwipeView Margin="0,10">
+                        <SwipeView.RightItems>
+                            <SwipeItems Mode="Reveal">
+                                <SwipeItem Text="Delete"
+                                           BackgroundColor="#FF3B30"
+                                           CommandParameter="{Binding}"
+                                           Invoked="OnDeleteBillInvoked"/>
+                            </SwipeItems>
+                        </SwipeView.RightItems>
+                    <Border Stroke="#00FFFF" StrokeThickness="2" StrokeShape="RoundRectangle 15" BackgroundColor="#1A1A3A" Margin="0" Padding="20">
                         <!-- Tap gesture for navigating to bill details -->
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnBillTapped" CommandParameter="{Binding}" />
@@ -88,6 +98,7 @@
                             <Label Grid.Column="2" Text="{Binding CurrentAmount, StringFormat='¥{0:N2}'}" FontSize="24" TextColor="#00FFFF" VerticalOptions="Center"/>
                         </Grid>
                     </Border>
+                    </SwipeView>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
