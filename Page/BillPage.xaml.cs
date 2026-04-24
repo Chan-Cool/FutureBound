@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
@@ -94,16 +94,29 @@ public partial class BillPage : ContentPage, INotifyPropertyChanged
         Color color = type == "Travel" ? Colors.LightGreen : type == "Traffic" ? Colors.LightCoral : Colors.LightSkyBlue;
         string logo = type == "Travel" ? "✈️" : type == "Traffic" ? "🚗" : "🛒";
 
+        // ✅ 读取用户设置的日期格式
+        string dateFormat = Data.AccountDataManager.GetDateFormat();
+
+        // Format EventDate manually to avoid platform ToString overload issues
+        // Use GetValueOrDefault to handle nullable DateTime returned by DatePicker
+        DateTime d = EventDatePicker.Date.GetValueOrDefault(DateTime.Today);
+        string formattedDate = dateFormat switch
+        {
+            "MM/dd/yyyy" => $"{d.Month:D2}/{d.Day:D2}/{d.Year:D4}",
+            "dd/MM/yyyy" => $"{d.Day:D2}/{d.Month:D2}/{d.Year:D4}",
+            _            => $"{d.Year:D4}-{d.Month:D2}-{d.Day:D2}"
+        };
+        DateTime now = DateTime.Now;
+
         Bills.Add(new Bill
         {
             Name = NewBillName,
             Type = type,
-            LastModifiedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
-            // Only change here: Assign TypeColorHex instead of TypeColor
+            LastModifiedTime = $"{now.Year:D4}-{now.Month:D2}-{now.Day:D2} {now:HH:mm}",
             TypeColorHex = ToHex(color),
             TypeLogo = logo,
             CurrentAmount = 0,
-            EventDate = $"{EventDatePicker.Date:yyyy-MM-dd}"
+            EventDate = formattedDate
         });
 
         // Save bills to local storage (style unchanged)
