@@ -51,6 +51,17 @@
                        IsPassword="True"
                        Margin="0,10,0,0"/>
 
+                <!-- Forgot password link -->
+                <Label Text="Forgot password?"
+                       TextColor="#2E86AB"
+                       FontSize="14"
+                       HorizontalOptions="End"
+                       Margin="0,-10,0,0">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="BtnForgotPassword_Clicked"/>
+                    </Label.GestureRecognizers>
+                </Label>
+
                 <!-- Login action button  -->
                 <Button x:Name="btnLogin"
                         Text="Log in"

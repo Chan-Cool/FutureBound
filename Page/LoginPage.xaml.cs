@@ -143,7 +143,7 @@ namespace FutureBound.Page
 
             if (inputPassword == savedPassword)
             {
-                // Add this line! Set current username after successful login
+                // ✅ Add this line! Set current username after successful login
                 AccountContext.CurrentUsername = selectedUsername;
 
                 await DisplayAlert("Success", "Login successful!", "OK");

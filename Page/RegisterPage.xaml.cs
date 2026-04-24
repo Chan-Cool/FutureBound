@@ -11,10 +11,10 @@ namespace FutureBound.Page
     // Communicates with LoginPage to refresh account list after successful registration
     public partial class RegisterPage : ContentPage
     {
-        // Key for storing list of registered usernames in local preferences
-        private const string RegisteredAccountsKey = "RegisteredAccounts";
-        // Prefix for password storage (avoids key conflict between different user accounts)
-        private const string UserPasswordKeyPrefix = "UserPassword_";
+        private const string RegisteredAccountsKey   = "RegisteredAccounts";
+        private const string UserPasswordKeyPrefix    = "UserPassword_";
+        private const string SecurityQuestionPrefix   = "SecurityQuestion_";
+        private const string SecurityAnswerPrefix     = "SecurityAnswer_";
 
         // Reference to parent LoginPage for account list refresh
         private LoginPage _loginPage;
@@ -35,13 +35,21 @@ namespace FutureBound.Page
         private async void BtnRegister_Clicked(object sender, EventArgs e)
         {
             // Get and trim user input to remove extra whitespace
-            string username = entryUsername.Text?.Trim();
-            string password = entryPassword.Text?.Trim();
+            string username         = entryUsername.Text?.Trim();
+            string password         = entryPassword.Text?.Trim();
+            string securityQuestion = entrySecurityQuestion.Text?.Trim();
+            string securityAnswer   = entrySecurityAnswer.Text?.Trim();
 
-            // Validate required fields (username and password cannot be empty)
+            // Validate required fields
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
                 await DisplayAlert("Notification", "Please fill in both username and password", "OK");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(securityQuestion) || string.IsNullOrEmpty(securityAnswer))
+            {
+                await DisplayAlert("Notification", "Please fill in a security question and answer", "OK");
                 return;
             }
 
@@ -62,8 +70,12 @@ namespace FutureBound.Page
             accounts.Add(username);
             Preferences.Set(RegisteredAccountsKey, string.Join(',', accounts));
 
-            // 2. Save password associated with the new username (key format: UserPassword_[username])
+            // 2. Save password
             Preferences.Set($"{UserPasswordKeyPrefix}{username}", password);
+
+            // 3. Save security question and answer (answer stored in lower case for case-insensitive match)
+            Preferences.Set($"{SecurityQuestionPrefix}{username}", securityQuestion);
+            Preferences.Set($"{SecurityAnswerPrefix}{username}", securityAnswer.ToLower());
 
             // Notify user of successful registration
             await DisplayAlert("Success", $"Username {username} registered successfully!", "OK");

@@ -51,6 +51,16 @@
                        IsPassword="True"
                        Margin="0,10,0,0"/>
 
+                <!-- Security question input field -->
+                <Entry x:Name="entrySecurityQuestion"
+                       Placeholder="Security Question (e.g. My pet's name?)"
+                       Margin="0,10,0,0"/>
+
+                <!-- Security answer input field -->
+                <Entry x:Name="entrySecurityAnswer"
+                       Placeholder="Security Answer:"
+                       Margin="0,10,0,0"/>
+
                 <!-- Registration action button -->
                 <Button x:Name="btnRegister"
                         Text="Register"
