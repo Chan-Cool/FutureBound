@@ -18,10 +18,15 @@ namespace FutureBound.Page
     /// </summary>
     public partial class LoginPage : ContentPage
     {
-        // Key for storing list of registered usernames in local preferences
         private const string RegisteredAccountsKey = "RegisteredAccounts";
-        // Prefix for password storage (prevents key collision between different user accounts)
-        private const string UserPasswordKeyPrefix = "UserPassword_";
+        private const string UserPasswordKeyPrefix  = "UserPassword_";
+        private const string SecurityQuestionPrefix = "SecurityQuestion_";
+        private const string SecurityAnswerPrefix   = "SecurityAnswer_";
+
+        // Secondary-password attempt tracking (per session, resets on app restart)
+        private int _deleteAttempts = 0;
+        private const int MaxDeleteAttempts = 3;
+        private DateTime _lockUntil = DateTime.MinValue;
 
         /// <summary>
         /// Initialize login page components and load saved accounts
@@ -138,7 +143,7 @@ namespace FutureBound.Page
 
             if (inputPassword == savedPassword)
             {
-                // ✅ Add this line! Set current username after successful login
+                // Add this line! Set current username after successful login
                 AccountContext.CurrentUsername = selectedUsername;
 
                 await DisplayAlert("Success", "Login successful!", "OK");
@@ -164,49 +169,189 @@ namespace FutureBound.Page
         }
 
         /// <summary>
-        /// Handle account deletion button click event
-        /// Removes selected account and associated password from local storage
-        /// Includes confirmation dialog to prevent accidental deletion
+        /// Handle forgot password tap
+        /// Flow: check lock → load security question → verify answer → set new password
+        /// Shares the same lockout counter as the delete function
         /// </summary>
-        /// <param name="sender">Button that triggered the event</param>
-        /// <param name="e">Event arguments</param>
+        private async void BtnForgotPassword_Clicked(object sender, EventArgs e)
+        {
+            // ── Step 1: Must have an account selected ─────────────────────
+            string selectedUsername = pickerAccount.SelectedItem?.ToString();
+            if (string.IsNullOrEmpty(selectedUsername))
+            {
+                await DisplayAlert("Tip", "Please select an account first.", "OK");
+                return;
+            }
+
+            // ── Step 2: Check shared lockout ──────────────────────────────
+            if (DateTime.Now < _lockUntil)
+            {
+                int secondsLeft = (int)(_lockUntil - DateTime.Now).TotalSeconds;
+                await DisplayAlert("Locked",
+                    $"Too many incorrect attempts.\nPlease wait {secondsLeft} second(s) before trying again.",
+                    "OK");
+                return;
+            }
+
+            // ── Step 3: Load and display the security question ────────────
+            string question = Preferences.Get($"{SecurityQuestionPrefix}{selectedUsername}", "");
+            if (string.IsNullOrEmpty(question))
+            {
+                await DisplayAlert("Unavailable",
+                    "No security question was set for this account.\nPlease contact support or re-register.",
+                    "OK");
+                return;
+            }
+
+            string inputAnswer = await DisplayPromptAsync(
+                "Security Question",
+                question,
+                placeholder: "Your answer",
+                maxLength: 100,
+                keyboard: Keyboard.Default);
+
+            if (inputAnswer == null) return;
+
+            // ── Step 4: Verify answer (case-insensitive) ──────────────────
+            string savedAnswer = Preferences.Get($"{SecurityAnswerPrefix}{selectedUsername}", "");
+
+            if (inputAnswer.Trim().ToLower() != savedAnswer)
+            {
+                _deleteAttempts++;
+                int remaining = MaxDeleteAttempts - _deleteAttempts;
+
+                if (_deleteAttempts >= MaxDeleteAttempts)
+                {
+                    _lockUntil = DateTime.Now.AddSeconds(30);
+                    _deleteAttempts = 0;
+                    await DisplayAlert("Locked",
+                        "Too many incorrect answers. You have been locked out for 30 seconds.",
+                        "OK");
+                }
+                else
+                {
+                    await DisplayAlert("Incorrect Answer",
+                        $"The answer you entered is incorrect.\nYou have {remaining} attempt(s) remaining.",
+                        "OK");
+                }
+                return;
+            }
+
+            // Answer correct — reset counter
+            _deleteAttempts = 0;
+
+            // ── Step 5: Prompt for new password ───────────────────────────
+            string newPassword = await DisplayPromptAsync(
+                "Reset Password",
+                "Enter your new password:",
+                placeholder: "New password",
+                maxLength: 50,
+                keyboard: Keyboard.Default);
+
+            if (string.IsNullOrWhiteSpace(newPassword))
+            {
+                await DisplayAlert("Cancelled", "Password reset was cancelled.", "OK");
+                return;
+            }
+
+            // ── Step 6: Save new password ─────────────────────────────────
+            Preferences.Set($"{UserPasswordKeyPrefix}{selectedUsername}", newPassword.Trim());
+
+            entryPassword.Text = "";
+            await DisplayAlert("Success",
+                "Your password has been reset successfully.\nPlease log in with your new password.",
+                "OK");
+        }
+
+        /// <summary>
+        /// Handle account deletion button click event
+        /// Flow: check lock → prompt secondary password → verify → confirm dialog → delete
+        /// Locks deletion for 30 seconds after 3 consecutive wrong passwords
+        /// </summary>
         private async void BtnDeleteAccount_Clicked(object sender, EventArgs e)
         {
             string selectedUsername = pickerAccount.SelectedItem?.ToString();
 
-            // Validate account selection
             if (string.IsNullOrEmpty(selectedUsername))
             {
                 await DisplayAlert("Notification", "Please select an account to delete", "OK");
                 return;
             }
 
-            // Confirm deletion action (prevents accidental removal)
-            bool confirm = await DisplayAlert("Confirm Deletion", $"Are you sure to delete account {selectedUsername}?\nThis action cannot be undone!", "Confirm", "Cancel");
+            // ── Step 1: Check if deletion is currently locked ──────────────
+            if (DateTime.Now < _lockUntil)
+            {
+                int secondsLeft = (int)(_lockUntil - DateTime.Now).TotalSeconds;
+                await DisplayAlert("Locked",
+                    $"Too many incorrect attempts.\nPlease wait {secondsLeft} second(s) before trying again.",
+                    "OK");
+                return;
+            }
+
+            // ── Step 2: Prompt for secondary password ──────────────────────
+            string inputPassword = await DisplayPromptAsync(
+                "Verify Identity",
+                $"Enter the password for \"{selectedUsername}\" to proceed:",
+                placeholder: "Password",
+                maxLength: 50,
+                keyboard: Keyboard.Default);
+
+            if (inputPassword == null) return; // user cancelled
+
+            // ── Step 3: Validate password ──────────────────────────────────
+            string savedPassword = Preferences.Get($"{UserPasswordKeyPrefix}{selectedUsername}", "");
+
+            if (inputPassword != savedPassword)
+            {
+                _deleteAttempts++;
+                int remaining = MaxDeleteAttempts - _deleteAttempts;
+
+                if (_deleteAttempts >= MaxDeleteAttempts)
+                {
+                    _lockUntil = DateTime.Now.AddSeconds(30);
+                    _deleteAttempts = 0;
+                    await DisplayAlert("Locked",
+                        "Incorrect password. You have been locked out for 30 seconds.",
+                        "OK");
+                }
+                else
+                {
+                    await DisplayAlert("Incorrect Password",
+                        $"The password you entered is incorrect.\nYou have {remaining} attempt(s) remaining.",
+                        "OK");
+                }
+                return;
+            }
+
+            // Password correct — reset attempt counter
+            _deleteAttempts = 0;
+
+            // ── Step 4: Final confirmation dialog ─────────────────────────
+            bool confirm = await DisplayAlert(
+                "Confirm Deletion",
+                $"Are you sure you want to permanently delete account \"{selectedUsername}\"?\nThis action cannot be undone!",
+                "Delete", "Cancel");
+
             if (!confirm) return;
 
-            // 1. Retrieve all registered accounts and remove selected account
+            // ── Step 5: Delete account data and update UI ──────────────────
             string savedAccounts = Preferences.Get(RegisteredAccountsKey, "");
             List<string> accounts = string.IsNullOrEmpty(savedAccounts)
                 ? new List<string>()
                 : savedAccounts.Split(',').ToList();
             accounts.Remove(selectedUsername);
 
-            // 2. Save updated account list to local storage
             Preferences.Set(RegisteredAccountsKey, string.Join(',', accounts));
-
-            // 3. Remove password associated with deleted account
             Preferences.Remove($"{UserPasswordKeyPrefix}{selectedUsername}");
+            AccountDataManager.DeleteAccountData(selectedUsername);
 
-            // 4. Reset UI state after deletion
-            pickerAccount.SelectedIndex = -1; // Clear account selection
-            entryPassword.Text = ""; // Clear password input
-            LoadRegisteredAccounts(); // Reload account list
+            pickerAccount.SelectedIndex = -1;
+            entryPassword.Text = "";
+            LoadRegisteredAccounts();
             UpdateLoginButtonState();
             UpdateDeleteButtonState();
 
-            // 5. Notify user of successful deletion
-            await DisplayAlert("Success", $"Account {selectedUsername} has been deleted!", "OK");
+            await DisplayAlert("Deleted", $"Account \"{selectedUsername}\" has been deleted.", "OK");
         }
     }
 }
