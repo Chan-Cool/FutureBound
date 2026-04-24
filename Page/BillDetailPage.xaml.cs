@@ -1,4 +1,4 @@
-using Microsoft.Maui.Controls;
+﻿using Microsoft.Maui.Controls;
 using FutureBound.Models;
 using FutureBound.Data;
 using Microsoft.Maui.Devices;
@@ -49,7 +49,9 @@ public partial class BillDetailPage : ContentPage
 
         // Update bill balance and record modification time
         Bill.CurrentAmount += num;
-        Bill.LastModifiedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+        // ✅ 读取用户设置的日期格式
+        string dateFormatSave = Data.AccountDataManager.GetDateFormat();
+        Bill.LastModifiedTime = DateTime.Now.ToString($"{dateFormatSave} HH:mm");
 
         // Add a new transaction record of type Increase (IsSave = true)
         Bill.Records.Add(new BillRecord
@@ -105,7 +107,9 @@ public partial class BillDetailPage : ContentPage
 
         // Deduct amount from bill balance and update time
         Bill.CurrentAmount -= num;
-        Bill.LastModifiedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+        // ✅ 读取用户设置的日期格式
+        string dateFormatCost = Data.AccountDataManager.GetDateFormat();
+        Bill.LastModifiedTime = DateTime.Now.ToString($"{dateFormatCost} HH:mm");
 
         // Add a new transaction record of type Decrease (IsSave = false)
         Bill.Records.Add(new BillRecord

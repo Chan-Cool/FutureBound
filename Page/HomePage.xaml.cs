@@ -1,4 +1,4 @@
-using FutureBound.Data;
+﻿using FutureBound.Data;
 using FutureBound.Page;
 using FutureBound.Pages;
 using Microsoft.Maui.Controls;
@@ -43,35 +43,37 @@ public partial class HomePage : ContentPage
         UpdateTotalAmountDisplay(saved);
     }
 
+    // ✅ 每次页面出现时用最新格式刷新金额显示（从设置页返回后立即生效）
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        string fmt = AccountDataManager.GetAmountFormat();
+        if (TotalAmountLabel != null)
+            TotalAmountLabel.Text = $"¥ {_totalAmount.ToString(fmt)}";
+    }
+
     /// <summary>
     /// Updates balance display with smooth 500ms animation and persists new value
     /// </summary>
-    /// <param name="newAmount">New total balance to display and save</param>
-    /// <remarks>
-    /// Animation details:
-    /// - 20 incremental steps (25ms per step)
-    /// - Transitions from old balance to new balance gradually
-    /// - Ensures final value is set explicitly to avoid animation rounding errors
-    /// - Safeguards against null reference on TotalAmountLabel
-    /// </remarks>
     private async void UpdateTotalAmountDisplay(decimal newAmount)
     {
         decimal oldAmount = _totalAmount;
         _totalAmount = newAmount;
         AccountDataManager.SaveTotalAmount(newAmount);
 
-        // Animate balance transition over 500ms (20 steps × 25ms)
+        // ✅ 读取用户设置的小数位数，不再硬编码 F2
+        string fmt = AccountDataManager.GetAmountFormat();
+
         for (int i = 0; i <= 20; i++)
         {
             decimal progress = (decimal)i / 20;
             decimal current = oldAmount + (newAmount - oldAmount) * progress;
             if (TotalAmountLabel != null)
-                TotalAmountLabel.Text = $"¥ {current:F2}";
+                TotalAmountLabel.Text = $"¥ {current.ToString(fmt)}";
             await Task.Delay(25);
         }
-        // Ensure final value is set correctly (prevents animation drift)
         if (TotalAmountLabel != null)
-            TotalAmountLabel.Text = $"¥ {newAmount:F2}";
+            TotalAmountLabel.Text = $"¥ {newAmount.ToString(fmt)}";
     }
 
     /// <summary>

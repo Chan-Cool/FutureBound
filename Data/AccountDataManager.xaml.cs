@@ -111,6 +111,28 @@ namespace FutureBound.Data
         }
 
         /// <summary>
+        /// Get amount format string based on user's decimal places setting
+        /// 根据用户设置的小数位数返回格式字符串
+        /// </summary>
+        public static string GetAmountFormat()
+        {
+            if (string.IsNullOrEmpty(AccountContext.CurrentUsername)) return "F2";
+            int index = Preferences.Get($"DecimalPlaces_{AccountContext.CurrentUsername}", 2);
+            return index switch { 0 => "F0", 1 => "F1", _ => "F2" };
+        }
+
+        /// <summary>
+        /// Get date format string based on user's date format setting
+        /// 根据用户设置的日期格式返回格式字符串
+        /// </summary>
+        public static string GetDateFormat()
+        {
+            if (string.IsNullOrEmpty(AccountContext.CurrentUsername)) return "yyyy-MM-dd";
+            int index = Preferences.Get($"DateFormat_{AccountContext.CurrentUsername}", 0);
+            return index switch { 1 => "MM/dd/yyyy", 2 => "dd/MM/yyyy", _ => "yyyy-MM-dd" };
+        }
+
+        /// <summary>
         /// Delete all persisted data for specified username
         /// 删除指定用户名的所有持久化数据
         /// </summary>
